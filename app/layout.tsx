@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en" className={cn("font-sans", geist.variable)}
      
     >
-      <body className={`${schibsted_Grotesk.variable} ${martian_Mono.variable} min-h-screen antialiased`}>
+      <body className={`${schibsted_Grotesk.variable} ${martian_Mono.variable} min-h-screen antialiased`} suppressHydrationWarning={true}>
         <Navbar />
         <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
               
