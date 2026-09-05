@@ -1,17 +1,16 @@
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
-import { IEvent } from "@/database/event.model";
+import { getEvents } from "@/lib/action/event.action";
 import { cacheLife } from "next/cache";
 export const instant = false;
 
 export default async function Home() {
   "use cache"
   cacheLife("hours")
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events`)
-  const {events} = await response.json()
+  const events = await getEvents()
   return (
     <section>
-      <h1 className="text-center">The Hub for Every Dev <br/>  Event You can't miss.</h1>
+      <h1 className="text-center">The Hub for Every Dev <br/>  Event You can&apos;t miss.</h1>
       <p className="text-center mt-5">Hackathons. Meetups,and Conferences All in one Place</p>
       <ExploreBtn />
 
@@ -20,8 +19,8 @@ export default async function Home() {
         <h3>Featured Events</h3>
 
         <ul className="events">
-          {events && events.length > 0 && events.map((event : IEvent)=>(
-            <li  className="list-none" key={event.title}>
+          {events.length > 0 && events.map((event)=>(
+            <li  className="list-none" key={event._id}>
               <EventCard {...event}/>
             </li>
           ))}

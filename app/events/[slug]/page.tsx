@@ -2,8 +2,7 @@ export const instant = false;
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import BookEvent from '@/components/BookEvent'
-import { getSimilarEventsBySlug } from '@/lib/action/event.action'
-import { IEvent } from '@/database/event.model'
+import { getBookingCount, getEventBySlug, getSimilarEventsBySlug } from '@/lib/action/event.action'
 import EventCard from '@/components/EventCard'
 
 
@@ -40,14 +39,16 @@ const EventTags =({tags}:{tags:string[]}) =>{
 }
 const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
   const {slug} = await params
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${slug}`)
-  const {event:{description,image,location,date,time, agenda,overview,audience,tags,organizer}} = await response.json()
+  const event = await getEventBySlug(slug)
 
-  if(!description) return notFound()
+  if(!event) return notFound()
 
-  const booking = 10
+  const {description,image,location,date,time, agenda,overview,audience,tags,organizer} = event
 
-  const similarEvents = await getSimilarEventsBySlug(slug)
+  const [booking, similarEvents] = await Promise.all([
+    getBookingCount(event._id),
+    getSimilarEventsBySlug(slug),
+  ])
   
 
   return (
@@ -103,7 +104,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
               </p>
             )
           }
-          <BookEvent/>
+          <BookEvent eventId={event._id}/>
             </div>
       </aside>
      </div>

@@ -1,16 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
+import { createBooking } from "@/lib/action/booking.action";
 
-const BookEvent = () => {
+const BookEvent = ({ eventId }: { eventId: string }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTimeout(() => {
-      setSubmitted(true);
-    }, 1000);
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await createBooking(eventId, email);
+
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        setError(result.message);
+      }
+    } catch {
+      setError("Unable to complete booking");
+    } finally {
+      setSubmitting(false);
+    }
+
   };
 
  
@@ -34,7 +51,10 @@ const BookEvent = () => {
             />
           </div>
 
-          <button type="submit">Submit</button>
+          {error && <p className="text-sm" role="alert">{error}</p>}
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
         </form>
       )}
     </div>
@@ -42,4 +62,3 @@ const BookEvent = () => {
 };
 
 export default BookEvent;
-
