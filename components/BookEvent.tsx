@@ -1,26 +1,52 @@
+
 "use client";
 
+import { createBooking } from "@/lib/action/booking.actions";
 import React, { useState } from "react";
 
-const BookEvent = () => {
+const BookEvent = ({
+  eventId,
+  slug,
+}: {
+  eventId: string;
+  slug: string;
+}) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTimeout(() => {
-      setSubmitted(true);
-    }, 1000);
-  };
 
- 
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await createBooking({
+        eventId,
+        slug,
+        email,
+      });
+
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        setError("Unable to complete booking");
+      }
+    } catch {
+      setError("Unable to complete booking");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div id="book-event">
       {submitted ? (
         <p className="text-sm">Thank you for signing up!</p>
       ) : (
-        <form  onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email">Email Address</label>
 
@@ -34,7 +60,15 @@ const BookEvent = () => {
             />
           </div>
 
-          <button type="submit">Submit</button>
+          {error && (
+            <p className="text-sm" role="alert">
+              {error}
+            </p>
+          )}
+
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
         </form>
       )}
     </div>

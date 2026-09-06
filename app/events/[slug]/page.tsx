@@ -41,8 +41,8 @@ const EventTags =({tags}:{tags:string[]}) =>{
 const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
   const {slug} = await params
   const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${slug}`)
-  const {event:{description,image,location,date,time, agenda,overview,audience,tags,organizer}} = await response.json()
-
+  const {event:{_id,description,image,location,date,time, agenda,overview,audience,tags,organizer}} = await response.json()
+console.log("id", _id,"slug",slug)
   if(!description) return notFound()
 
   const booking = 10
@@ -93,7 +93,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
       <aside className='booking'>
           <div className="signup-card">
             <h2>Book Your Spot</h2>
-            {booking > 0 ? (
+            {booking  > 0 ? (
               <p className='text-sm'>
                 Join {booking} people who are already booked there spot!
               </p>
@@ -103,7 +103,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
               </p>
             )
           }
-          <BookEvent/>
+          <BookEvent eventId={_id} slug={slug} />
             </div>
       </aside>
      </div>
