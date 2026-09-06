@@ -2,7 +2,8 @@ export const instant = false;
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import BookEvent from '@/components/BookEvent'
-import { getBookingCount, getEventBySlug, getSimilarEventsBySlug } from '@/lib/action/event.action'
+import { getSimilarEventsBySlug } from '@/lib/action/event.action'
+import { IEvent } from '@/database/event.model'
 import EventCard from '@/components/EventCard'
 
 
@@ -39,16 +40,14 @@ const EventTags =({tags}:{tags:string[]}) =>{
 }
 const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
   const {slug} = await params
-  const event = await getEventBySlug(slug)
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${slug}`)
+  const {event:{_id,description,image,location,date,time, agenda,overview,audience,tags,organizer}} = await response.json()
+console.log("id", _id,"slug",slug)
+  if(!description) return notFound()
 
-  if(!event) return notFound()
+  const booking = 10
 
-  const {description,image,location,date,time, agenda,overview,audience,tags,organizer} = event
-
-  const [booking, similarEvents] = await Promise.all([
-    getBookingCount(event._id),
-    getSimilarEventsBySlug(slug),
-  ])
+  const similarEvents = await getSimilarEventsBySlug(slug)
   
 
   return (
@@ -94,7 +93,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
       <aside className='booking'>
           <div className="signup-card">
             <h2>Book Your Spot</h2>
-            {booking > 0 ? (
+            {booking  > 0 ? (
               <p className='text-sm'>
                 Join {booking} people who are already booked there spot!
               </p>
@@ -104,7 +103,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
               </p>
             )
           }
-          <BookEvent eventId={event._id}/>
+          <BookEvent eventId={_id} slug={slug} />
             </div>
       </aside>
      </div>
