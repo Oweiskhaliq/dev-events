@@ -42,7 +42,7 @@ const EventDetailPage = async ({params}:{params:Promise<{slug:string}>}) => {
   const {slug} = await params
   const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${slug}`)
   const {event:{_id,description,image,location,date,time, agenda,overview,audience,tags,organizer}} = await response.json()
-console.log("id", _id,"slug",slug)
+
   if(!description) return notFound()
 
   const booking = 10
