@@ -2,6 +2,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import Event from "@/database/event.model";
 import { v2 as cloudinary } from "cloudinary";
+import { uploadImage } from "@/lib/uploadImage";
 
 const MAX_REQUEST_SIZE_BYTES = 4.5 * 1024 * 1024;
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
@@ -52,6 +53,7 @@ function detectImageType(bytes: Uint8Array) {
 }
 
 export async function POST(req: NextRequest) {
+   console.log("🔥 CREATE EVENT API HIT");
   try {
     const contentLength = Number(req.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_SIZE_BYTES) {
@@ -74,58 +76,17 @@ export async function POST(req: NextRequest) {
     //uploading image to cloudinery 
     const file = formData.get("image");
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        { message: "image file required" },
-        { status: 400 }
-      );
-    }
-
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      return NextResponse.json(
-        { message: "Image file is too large" },
-        { status: 413 }
-      );
-    }
-
-    if (file.size === 0) {
-      return NextResponse.json(
-        { message: "image file required" },
-        { status: 400 }
-      );
-    }
-
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-      return NextResponse.json(
-        { message: "Unsupported image type" },
-        { status: 415 }
-      );
-    }
-
-    const headerBytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
-    if (detectImageType(headerBytes) !== file.type) {
-      return NextResponse.json(
-        { message: "Invalid image file" },
-        { status: 415 }
-      );
-    }
+  return NextResponse.json(
+    { message: "Image file required" },
+    { status: 400 }
+  );
+}
+    const uploadResult = await uploadImage(file as File);
+    
+    eventData.image = uploadResult.secure_url as string;
 
     const tags = JSON.parse(formData.get("tags") as string);
     const agenda = JSON.parse(formData.get("agenda") as string);
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
- 
-    //uploading image to cloudinary 
-    const uploadResult = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
-      cloudinary.uploader.upload_stream({resource_type: 'image',folder: 'DevEvent'},(error,result) => {
-        if(error) return reject(error);
-        if (!result) return reject(new Error("Cloudinary returned no upload result"));
-        resolve(result);
-      }).end(buffer);
-    });
-    
-    eventData.image = uploadResult.secure_url;
-
     // 4. Save records directly to your Mongoose schema template
     let createdEvent;
     try {
