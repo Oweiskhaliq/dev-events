@@ -15,11 +15,21 @@ const serializeEvent = <T extends {
   updatedAt: event.updatedAt.toISOString(),
 });
 
-export const getEvents = async () => {
+export const getEvents = async (currentPage: number,itemsPerPage: number) => {
   await connectToDatabase();
-  const events = await Event.find().sort({ createdAt: -1 }).lean();
+  let [events,totalEvent] = await Promise.all([
+    Event.find().sort({ createdAt: -1 }).limit(itemsPerPage).skip((currentPage - 1) * itemsPerPage)
+  .lean(),
+    Event.countDocuments(),
 
-  return events.map(serializeEvent);
+  ])
+ 
+  
+  const totalPages = Math.ceil(totalEvent / itemsPerPage);
+  return {
+    events: events.map(serializeEvent),
+    totalPages,
+  };
 };
 
 export const getEventBySlug = async (slug: string) => {

@@ -2,8 +2,9 @@
 import { IEvent } from '@/database/event.model'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Pagination from './Pagination';
 
-const EventTable = ({events}: { events: IEvent[] }) => {
+const EventTable = ({events,currentPage,totalPages}: { events: IEvent[],currentPage: number,totalPages: number }) => {
   const router = useRouter();
   const handleDelete = async (id: string) => {
   const confirmed = window.confirm(
@@ -16,16 +17,16 @@ const EventTable = ({events}: { events: IEvent[] }) => {
     const response = await fetch(`/api/update-event/${id}`, {
       method: "DELETE",
     });
-    console.log("response",response)
+    
 
     const data = await response.json();
-    console.log("delete",data)
+   
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to delete event");
     }
 
-    console.log(data.message);
+   
    // Refresh the Server Component
      router.push("/dashboard");
       
@@ -136,25 +137,8 @@ const EventTable = ({events}: { events: IEvent[] }) => {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-5 py-4 border-t border-border-dark">
-            <button
-              type="button"
-              className="px-4 py-2 rounded-md bg-dark-100 text-sm hover:bg-dark-200 transition"
-            >
-              Previous
-            </button>
-
-            <span className="text-sm text-light-200">
-              Page 1 of 10
-            </span>
-
-            <button
-              type="button"
-              className="px-4 py-2 rounded-md bg-dark-100 text-sm hover:bg-dark-200 transition"
-            >
-              Next
-            </button>
-          </div>
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
+        
         </div>
   )
 }

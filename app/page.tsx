@@ -7,7 +7,7 @@ export const instant = false;
 export default async function Home() {
   "use cache"
   cacheLife("hours")
-  const events = await getEvents()
+  const {events} = await getEvents(1,9)
   return (
     <section>
       <h1 className="text-center">The Hub for Every Dev <br/>  Event You can&apos;t miss.</h1>

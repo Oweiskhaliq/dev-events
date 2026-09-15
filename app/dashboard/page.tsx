@@ -3,8 +3,7 @@ import Link from "next/link";
 import { getEvents } from "@/lib/action/event.action";
 import EventTable from "@/components/EventTable";
 import { connection } from "next/server";
-export const instant = false; 
-
+export const instant = false;
 interface Event {
   _id: string;
   title: string;
@@ -18,10 +17,18 @@ interface Event {
 
 
 
-const Dashboard = async () => {
+const Dashboard = async ({searchParams,}:{searchParams: Promise<{ page?: string }>;}) => {
+  
+  const {page} =  await searchParams;
+  const currentPage = Math.max(Number(page) || 1);
     
+  let ITEMS_PER_PAGE = 10;
     await connection();
-    const events = await getEvents()
+    const {events,totalPages} = await getEvents(
+      currentPage,
+      ITEMS_PER_PAGE
+    )
+    
   return (
     <main>
       <div className="w-full">
@@ -46,7 +53,7 @@ const Dashboard = async () => {
         </div>
 
         {/* Table */}
-        <EventTable events={events} />
+        <EventTable events={events} currentPage={currentPage} totalPages={totalPages} />
       </div>
     </main>
   );
