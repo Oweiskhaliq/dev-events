@@ -3,7 +3,6 @@ import { Types } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import Event from "@/database/event.model";
 import { uploadImage } from "@/lib/uploadImage";
-import { getCurrentUser } from "@/lib/getCurrentUser";
 import { getCurrentUserFromRequest } from "@/lib/getCurrentUserFromRequest";
 
 export async function PUT(
@@ -47,16 +46,16 @@ export async function PUT(
     }
 
      // 4. Check ownership
-    // if (event.createdBy.toString() !== user._id.toString()) {
-    //   return NextResponse.json(
-    //     {
-    //       message: "You are not allowed to update this event",
-    //     },
-    //     {
-    //       status: 403,
-    //     }
-    //   );
-    // }
+    if (existingEvent?.createdBy.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        {
+          message: "You are not allowed to update this event",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
 
     const formData = await req.formData();
 
@@ -183,6 +182,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Check authentication
+    const user = await getCurrentUserFromRequest(_req);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
     const { id } = await params;
 
     // Validate MongoDB ObjectId
@@ -195,6 +207,33 @@ export async function DELETE(
 
     // Connect to MongoDB
     await connectToDatabase();
+
+     // 3. Find event
+    const event = await Event.findById(id);
+
+    if (!event) {
+      return NextResponse.json(
+        {
+          message: "Event not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // 4. Check ownership
+    if (event.createdBy.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        {
+          message: "You are not allowed to delete this event",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
 
     // Delete event
     const deletedEvent = await Event.findByIdAndDelete(id);

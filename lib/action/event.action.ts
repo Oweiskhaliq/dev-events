@@ -3,7 +3,6 @@ import "server-only";
 import { connectToDatabase } from "../mongodb";
 import Event from "../../database/event.model";
 import Booking from "../../database/booking.model";
-
 const serializeEvent = <T extends {
   _id: { toString(): string };
   createdAt: Date;

@@ -3,37 +3,33 @@ import { IEvent } from '@/database/event.model'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Pagination from './Pagination';
+import { useState } from 'react';
+import DeleteDialogBox from './DeleteDialogBox';
 
 const EventTable = ({events,currentPage,totalPages}: { events: IEvent[],currentPage: number,totalPages: number }) => {
   const router = useRouter();
-  const handleDelete = async (id: string) => {
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this event?"
-  );
-
-  if (!confirmed) return router.push("/dashboard");
-
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
+const [isDeleting, setIsDeleting] = useState(false);
+const handleDelete = async (id: string) => {
   try {
+    setIsDeleting(true);
+
     const response = await fetch(`/api/update-event/${id}`, {
       method: "DELETE",
     });
-    
 
     const data = await response.json();
-   
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to delete event");
     }
 
-   
-   // Refresh the Server Component
-     router.push("/dashboard");
-      
-      
-    
+    setDeleteEventId(null);
+    router.refresh();
   } catch (error) {
     console.error("DELETE ERROR:", error);
+  } finally {
+    setIsDeleting(false);
   }
 };
   return (
@@ -124,7 +120,7 @@ const EventTable = ({events,currentPage,totalPages}: { events: IEvent[],currentP
                         <button
                           type="button"
                           className="text-red-400 text-sm hover:underline"
-                          onClick={() => handleDelete(event._id.toString())}
+                          onClick={() => setDeleteEventId(event._id.toString())}
                         >
                           Delete
                         </button>
@@ -135,10 +131,23 @@ const EventTable = ({events,currentPage,totalPages}: { events: IEvent[],currentP
               </tbody>
             </table>
           </div>
+             {/* Delete Dialog Box */}
+          <DeleteDialogBox
+          isOpen={deleteEventId !== null}
+          isDeleting={isDeleting}
+          onClose={() => setDeleteEventId(null)}
+          onConfirm={() => {
+            if (deleteEventId) {
+              handleDelete(deleteEventId);
+            }
+          }}
+        />
 
           {/* Pagination */}
-          <Pagination currentPage={currentPage} totalPages={totalPages} />
-        
+          <Pagination  currentPage={currentPage} totalPages={totalPages} basePath="/dashboard"  />
+              
+           
+
         </div>
   )
 }

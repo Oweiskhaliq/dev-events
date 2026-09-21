@@ -62,6 +62,7 @@ try {
 
   // Login successful
   router.push("/dashboard");
+  router.refresh();
 } catch (error) {
   console.error("Login error:", error);
   setError("Something went wrong. Please try again.");
