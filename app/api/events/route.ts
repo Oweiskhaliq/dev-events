@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Event from "@/database/event.model";
 import { v2 as cloudinary } from "cloudinary";
 import { uploadImage } from "@/lib/uploadImage";
+import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getCurrentUserFromRequest } from "@/lib/getCurrentUserFromRequest";
 
 const MAX_REQUEST_SIZE_BYTES = 4.5 * 1024 * 1024;
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
@@ -53,8 +55,21 @@ function detectImageType(bytes: Uint8Array) {
 }
 
 export async function POST(req: NextRequest) {
-   console.log("🔥 CREATE EVENT API HIT");
+  
   try {
+    const user = await getCurrentUserFromRequest(req);
+
+      if (!user) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
     const contentLength = Number(req.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_SIZE_BYTES) {
       return NextResponse.json(
@@ -93,7 +108,8 @@ export async function POST(req: NextRequest) {
       createdEvent = await Event.create({
         ...eventData,
         tags:tags,
-        agenda:agenda
+        agenda:agenda,
+        createdBy: user._id,
       });
     } catch (persistenceError) {
       try {

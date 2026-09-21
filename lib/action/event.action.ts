@@ -8,9 +8,12 @@ const serializeEvent = <T extends {
   _id: { toString(): string };
   createdAt: Date;
   updatedAt: Date;
+  createdBy: any;
+  
 }>(event: T) => ({
   ...event,
   _id: event._id.toString(),
+   createdBy: event.createdBy.toString(),
   createdAt: event.createdAt.toISOString(),
   updatedAt: event.updatedAt.toISOString(),
 });

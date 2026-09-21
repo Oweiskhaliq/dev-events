@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getEvents } from "@/lib/action/event.action";
 import EventTable from "@/components/EventTable";
 import { connection } from "next/server";
+import { getCurrentUser } from "@/lib/getCurrentUser";
+import { redirect } from "next/navigation";
 export const instant = false;
 interface Event {
   _id: string;
@@ -12,6 +14,7 @@ interface Event {
   date: string;
   time: string;
   audience: string;
+  createdBy: string;
 }
 
 
@@ -28,6 +31,11 @@ const Dashboard = async ({searchParams,}:{searchParams: Promise<{ page?: string 
       currentPage,
       ITEMS_PER_PAGE
     )
+     const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/dashboard/login");
+  }
     
   return (
     <main>

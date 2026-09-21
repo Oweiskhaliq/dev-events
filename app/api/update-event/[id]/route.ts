@@ -3,12 +3,27 @@ import { Types } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import Event from "@/database/event.model";
 import { uploadImage } from "@/lib/uploadImage";
+import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getCurrentUserFromRequest } from "@/lib/getCurrentUserFromRequest";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+     // 1. Check authentication
+    const user = await getCurrentUserFromRequest(req);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
     const { id } = await params;
 
     // Validate ID
@@ -30,6 +45,18 @@ export async function PUT(
         { status: 404 }
       );
     }
+
+     // 4. Check ownership
+    // if (event.createdBy.toString() !== user._id.toString()) {
+    //   return NextResponse.json(
+    //     {
+    //       message: "You are not allowed to update this event",
+    //     },
+    //     {
+    //       status: 403,
+    //     }
+    //   );
+    // }
 
     const formData = await req.formData();
 
@@ -116,7 +143,7 @@ export async function PUT(
       id,
       updateData,
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       }
     );
