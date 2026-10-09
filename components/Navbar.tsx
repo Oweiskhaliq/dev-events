@@ -1,8 +1,13 @@
 import React from 'react'
 import Image from "next/image";
 import Link from "next/link";
+import { getCurrentUser } from '@/lib/getCurrentUser';
+import LogoutButton from './LogoutButton';
 
-const Navbar = () => {
+const Navbar = async ()  => {
+  const user = await getCurrentUser();
+
+
   return (
     <header>
         <nav>
@@ -14,8 +19,11 @@ const Navbar = () => {
 
             <ul>
                 <Link href="/">Home</Link>
-                  <Link href="/">Events</Link>
-                    <Link href="/dashboard/login">Login</Link>
+                  <Link href="/all-events">Event</Link>
+                 {user && <Link href="/dashboard">Dashboard</Link>}
+                     {
+                      user ? <LogoutButton /> : <Link href="/dashboard/login">Login</Link>
+                     }
             </ul>
         </nav>
     </header>

@@ -2,10 +2,16 @@ import React from 'react'
 import { GetSingleEvent } from '@/lib/action/updateEvent.action';
 
 import CreateEventForm from '@/components/CreateEvent';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/getCurrentUser';
 
 export const instant = false; 
 const EditEvent = async ({ params }: { params: Promise<{ id: string }> }) => {
+   const user = await getCurrentUser();
+  
+    if (!user) {
+      redirect("/dashboard/login");
+    }
     let eventResult
     let eventToEdit
    try {

@@ -3,12 +3,26 @@ import { Types } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import Event from "@/database/event.model";
 import { uploadImage } from "@/lib/uploadImage";
+import { getCurrentUserFromRequest } from "@/lib/getCurrentUserFromRequest";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+     // 1. Check authentication
+    const user = await getCurrentUserFromRequest(req);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
     const { id } = await params;
 
     // Validate ID
@@ -28,6 +42,18 @@ export async function PUT(
       return NextResponse.json(
         { message: "Event not found" },
         { status: 404 }
+      );
+    }
+
+     // 4. Check ownership
+    if (existingEvent?.createdBy.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        {
+          message: "You are not allowed to update this event",
+        },
+        {
+          status: 403,
+        }
       );
     }
 
@@ -116,7 +142,7 @@ export async function PUT(
       id,
       updateData,
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       }
     );
@@ -156,6 +182,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Check authentication
+    const user = await getCurrentUserFromRequest(_req);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
     const { id } = await params;
 
     // Validate MongoDB ObjectId
@@ -168,6 +207,33 @@ export async function DELETE(
 
     // Connect to MongoDB
     await connectToDatabase();
+
+     // 3. Find event
+    const event = await Event.findById(id);
+
+    if (!event) {
+      return NextResponse.json(
+        {
+          message: "Event not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // 4. Check ownership
+    if (event.createdBy.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        {
+          message: "You are not allowed to delete this event",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
 
     // Delete event
     const deletedEvent = await Event.findByIdAndDelete(id);

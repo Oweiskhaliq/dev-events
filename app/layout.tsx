@@ -5,6 +5,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import LightRays from "@/components/LightRays";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main>
           {children}
         </main>
+        <Footer />
         </body>
     </html>
   );

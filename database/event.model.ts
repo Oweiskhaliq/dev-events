@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema, Types } from "mongoose";
 
 export interface IEvent extends Document {
   title: string;
@@ -15,6 +15,7 @@ export interface IEvent extends Document {
   agenda: string[];
   organizer: string;
   tags: string[];
+  createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,6 +103,11 @@ const eventSchema = new Schema<IEvent>(
           value.every((item) => item.trim().length > 0),
         message: "Tags must contain at least one non-empty item",
       },
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
